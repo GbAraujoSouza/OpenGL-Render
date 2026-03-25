@@ -50,14 +50,16 @@ public:
 
 		vertex = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertex, 1, &vShaderCode, NULL);
+		glCompileShader(vertex);
 		glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			glGetShaderInfoLog(vertex, 512, NULL, infoLog);
 			std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED" << infoLog << "\n";
 		}
 
-		fragment = glCreateShader(GL_VERTEX_SHADER);
+		fragment = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragment, 1, &fShaderCode, NULL);
+		glCompileShader(fragment);
 		glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			glGetShaderInfoLog(fragment, 512, NULL, infoLog);
@@ -68,9 +70,9 @@ public:
 		glAttachShader(this->ID, vertex);
 		glAttachShader(this->ID, fragment);
 		glLinkProgram(this->ID);
-		glGetProgramiv(fragment, GL_LINK_STATUS, &success);
+		glGetProgramiv(this->ID, GL_LINK_STATUS, &success);
 		if (!success) {
-			glGetProgramInfoLog(fragment, 512, NULL, infoLog);
+			glGetProgramInfoLog(this->ID, 512, NULL, infoLog);
 			std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED" << infoLog << "\n";
 		}
 
@@ -78,12 +80,23 @@ public:
 		glDeleteShader(fragment);
 	}
 	
-	void use();
+	void use() const {
+		glUseProgram(this->ID);
+	}
 
 	// util functions to set uniforms
-	void setBool(const std::string& name, bool value) const;
-	void setInt(const std::string& name, int value) const;
-	void setFloat(const std::string& name, float value) const;
+	void setbool(const std::string& uniformName, bool value) const {
+		// uniform do not accept bool type, so we convert to a int value {0: false, 1: true}
+		glUniform1i(glGetUniformLocation(this->ID, uniformName.c_str()), (int)value);
+	}
+
+	void setInt(const std::string& uniformName, int value) const {
+		glUniform1i(glGetUniformLocation(this->ID, uniformName.c_str()), value);
+	}
+
+	void setFloat(const std::string& uniformName, float value) const {
+		glUniform1f(glGetUniformLocation(this->ID, uniformName.c_str()), value);
+	}
 };
 
 #endif // !SHADER_H
