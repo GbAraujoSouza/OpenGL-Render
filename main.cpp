@@ -4,6 +4,10 @@
 #include "Shader.h"
 #include "stb_image.h"
 
+#include "VAO.h"
+#include "VBO.h"
+#include "EBO.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
@@ -65,37 +69,26 @@ int main() {
 		0, 2, 3
 	};
 
-	unsigned int VAO, VBO, EBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	VAO vao{};
+	vao.bind();
 
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	VBO vbo(vertices, sizeof(vertices));
+	EBO ebo(indices, sizeof(indices));
 
 
 	// Configure VERTEX ATTRIBUTES ###########
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*)0);
-	glEnableVertexAttribArray(0);
+	vao.linkVBO(vbo, 0, 3,(void*)0);
 	// color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
-	glEnableVertexAttribArray(1);
-
+	vao.linkVBO(vbo, 1, 3,(void*)(3 * sizeof(GLfloat)));
 	// texture attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (void*)(6 * sizeof(GL_FLOAT)));
-	glEnableVertexAttribArray(2);
+	vao.linkVBO(vbo, 2, 2,(void*)(6* sizeof(GLfloat)));
 
 
 	// Unbind buffers
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // need to unbind EBO after the VAO
+	vbo.unbind();
+	vao.unbind();
+	ebo.unbind(); // need to unbind EBO after the VAO
 
 
 	// SETUP TEXTURES ###################
@@ -145,11 +138,12 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, texturesIDs[1]);
 		programShader.use();
 
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		vao.bind();
+		ebo.bind();
+
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		glBindVertexArray(0);
+		vao.unbind();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -157,9 +151,9 @@ int main() {
 
 	programShader.deleteShader();
 
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
+	vao.delete_buffer();
+	vbo.delete_buffer();
+	ebo.delete_buffer();
 
 	glfwDestroyWindow(window);
 
