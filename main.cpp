@@ -122,8 +122,8 @@ int main() {
 	stbi_image_free(data);
 
 	programShader.use();
-	programShader.setInt("texture0", 1);
-	programShader.setInt("texture1", 0);
+	programShader.setInt("texture0", 0);
+	programShader.setInt("texture1", 1);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// render loop

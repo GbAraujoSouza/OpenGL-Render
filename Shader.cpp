@@ -77,13 +77,16 @@ void Shader::deleteShader() const {
 // util functions to set uniforms
 void Shader::setbool(const std::string& uniformName, bool value) const {
 	// uniform do not accept bool type, so we convert to a int value {0: false, 1: true}
-	glUniform1i(glGetUniformLocation(this->ID, uniformName.c_str()), (int)value);
+	GLuint uniformID = glGetUniformLocation(this->ID, uniformName.c_str());
+	glUniform1i(uniformID, (int)value);
 }
 
 void Shader::setInt(const std::string& uniformName, int value) const {
-	glUniform1i(glGetUniformLocation(this->ID, uniformName.c_str()), value);
+	GLuint uniformID = glGetUniformLocation(this->ID, uniformName.c_str());
+	glUniform1i(uniformID, value);
 }
 
 void Shader::setFloat(const std::string& uniformName, float value) const {
-	glUniform1f(glGetUniformLocation(this->ID, uniformName.c_str()), value);
+	GLuint uniformID = glGetUniformLocation(this->ID, uniformName.c_str());
+	glUniform1f(uniformID, value);
 }
