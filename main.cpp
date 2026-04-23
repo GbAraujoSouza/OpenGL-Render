@@ -7,6 +7,7 @@
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
+#include "Texture.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -51,7 +52,7 @@ int main() {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-	Shader programShader("shaders/shader.vs", "shaders/shader.fs");
+	Shader programShader("shaders/vert.glsl", "shaders/frag.glsl");
 	programShader.use();
 	programShader.setFloat("positionOffset", 0.0f);
 
@@ -92,34 +93,8 @@ int main() {
 
 
 	// SETUP TEXTURES ###################
-	stbi_set_flip_vertically_on_load(true);
-	unsigned int texturesIDs[2];
-	int width, height, nrChannels;
-	unsigned char* data;
-
-	glGenTextures(2, texturesIDs);
-
-	glBindTexture(GL_TEXTURE_2D, texturesIDs[0]);
-	data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		std::cout << "ERROR::TEXTURE::FAILED_TO_READ_TEXTURE" << "\n";
-	}
-
-	glBindTexture(GL_TEXTURE_2D, texturesIDs[1]);
-	data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		std::cout << "ERROR::TEXTURE::FAILED_TO_READ_TEXTURE" << "\n";
-	}
-
-	stbi_image_free(data);
+	Texture texture1("container.jpg", GL_RGB);
+	Texture texture2("awesomeface.png", GL_RGBA);
 
 	programShader.use();
 	programShader.setInt("texture0", 0);
@@ -132,10 +107,12 @@ int main() {
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texturesIDs[0]);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texturesIDs[1]);
+		texture1.activate(GL_TEXTURE0);
+		texture1.bind();
+
+		texture2.activate(GL_TEXTURE1);
+		texture2.bind();
+
 		programShader.use();
 
 		vao.bind();
