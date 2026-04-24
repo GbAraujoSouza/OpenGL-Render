@@ -3,6 +3,8 @@
 #include <iostream>
 #include "Shader.h"
 #include "stb_image.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "VAO.h"
 #include "VBO.h"
@@ -54,8 +56,6 @@ int main() {
 
 	Shader programShader("shaders/vert.glsl", "shaders/frag.glsl");
 	programShader.use();
-	programShader.setFloat("positionOffset", 0.0f);
-
 
 	// SETUP VERTEX ATTRIBUTES ######################
 	float vertices[] = {
@@ -79,11 +79,11 @@ int main() {
 
 	// Configure VERTEX ATTRIBUTES ###########
 	// position attribute
-	vao.linkVBO(vbo, 0, 3,(void*)0);
+	vao.linkVBO(vbo, 0, 3, (void*)0);
 	// color attribute
-	vao.linkVBO(vbo, 1, 3,(void*)(3 * sizeof(GLfloat)));
+	vao.linkVBO(vbo, 1, 3, (void*)(3 * sizeof(GLfloat)));
 	// texture attribute
-	vao.linkVBO(vbo, 2, 2,(void*)(6* sizeof(GLfloat)));
+	vao.linkVBO(vbo, 2, 2, (void*)(6 * sizeof(GLfloat)));
 
 
 	// Unbind buffers
@@ -114,6 +114,14 @@ int main() {
 		texture2.bind();
 
 		programShader.use();
+
+		glm::mat4 transformMatrix = glm::mat4(1.0f);
+		transformMatrix = glm::translate(transformMatrix, glm::vec3(0.5, 0.5, 0.0));
+		transformMatrix = glm::rotate(transformMatrix, 2.0f * static_cast<float>(glfwGetTime()), glm::vec3(0.0, 0.0, 1.0));
+
+		GLuint transformMatrixLoc = glGetUniformLocation(programShader.ID, "transformMatrix");
+		glUniformMatrix4fv(transformMatrixLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+
 
 		vao.bind();
 		ebo.bind();
