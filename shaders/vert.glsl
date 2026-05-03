@@ -6,10 +6,12 @@ layout (location = 2) in vec2 aTexCoord;
 
 out vec4 vertexColor;
 out vec2 TextureCoord;
-uniform mat4 transformMatrix;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
-void main() {
-	gl_Position = vec4(aPos, 1.0f) * transformMatrix;
+void main() {	
+	gl_Position = projection * view * model * vec4(aPos, 1.0f);
 	vertexColor = vec4(aColor.x, aColor.y, aColor.z, 1.0f);
 	TextureCoord = aTexCoord;
 };

@@ -2,6 +2,8 @@
 #define SHADER_H
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 #include <fstream>
@@ -25,6 +27,8 @@ public:
 	void setInt(const std::string& uniformName, int value) const;
 
 	void setFloat(const std::string& uniformName, float value) const;
+
+	void setMat4(const std::string& uniformName, glm::mat4& matrix) const;
 };
 
 #endif // !SHADER_H

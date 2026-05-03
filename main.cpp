@@ -10,6 +10,10 @@
 #include "VBO.h"
 #include "EBO.h"
 #include "Texture.h"
+#include "cube.h"
+
+#define VIEW_WIDTH 800
+#define VIEW_HEIGHT 600
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -35,7 +39,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL de cria", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(VIEW_WIDTH, VIEW_HEIGHT, "OpenGL de cria", NULL, NULL);
 	if (window == NULL) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -49,6 +53,7 @@ int main() {
 	}
 
 	glViewport(0, 0, 800, 600);
+	glEnable(GL_DEPTH_TEST);
 
 	// resize window viewport
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -58,23 +63,12 @@ int main() {
 	programShader.use();
 
 	// SETUP VERTEX ATTRIBUTES ######################
-	float vertices[] = {
-		//first
-		 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f, // top right
-		 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // bottom right
-		-0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, // top left 
-		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f, // bottom left
-	};
-	unsigned int indices[] = {
-		0, 1, 3,
-		0, 2, 3
-	};
 
 	VAO vao{};
 	vao.bind();
 
-	VBO vbo(vertices, sizeof(vertices));
-	EBO ebo(indices, sizeof(indices));
+	VBO vbo(cube::vertices, sizeof(GLfloat) * cube::vertices.size());
+	//EBO ebo(indices, sizeof(indices));
 
 
 	// Configure VERTEX ATTRIBUTES ###########
@@ -89,7 +83,7 @@ int main() {
 	// Unbind buffers
 	vbo.unbind();
 	vao.unbind();
-	ebo.unbind(); // need to unbind EBO after the VAO
+	//ebo.unbind(); // need to unbind EBO after the VAO
 
 
 	// SETUP TEXTURES ###################
@@ -100,12 +94,25 @@ int main() {
 	programShader.setInt("texture0", 0);
 	programShader.setInt("texture1", 1);
 
+	std::vector<glm::vec3> cubePositions = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// render loop
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		texture1.activate(GL_TEXTURE0);
 		texture1.bind();
@@ -115,18 +122,29 @@ int main() {
 
 		programShader.use();
 
-		glm::mat4 transformMatrix = glm::mat4(1.0f);
-		transformMatrix = glm::translate(transformMatrix, glm::vec3(0.5, 0.5, 0.0));
-		transformMatrix = glm::rotate(transformMatrix, 2.0f * static_cast<float>(glfwGetTime()), glm::vec3(0.0, 0.0, 1.0));
+		// rotate with time
+		float t = glfwGetTime();
 
-		GLuint transformMatrixLoc = glGetUniformLocation(programShader.ID, "transformMatrix");
-		glUniformMatrix4fv(transformMatrixLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+		glm::mat4 view = glm::mat4(1.0f);
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		programShader.setMat4("view", view);
+
+		glm::mat4 projection = glm::mat4(1.0f);
+		projection = glm::perspective(glm::radians(45.0f), static_cast<float>(VIEW_WIDTH) / VIEW_HEIGHT, 0.1f, 100.0f);
+		programShader.setMat4("projection", projection);
 
 
 		vao.bind();
-		ebo.bind();
+		//ebo.bind();
 
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		for (auto pos : cubePositions) {
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, pos);
+			model = glm::rotate(model, glm::radians(-30.0f) * t, glm::vec3(1.0f, 1.0f, 0.0f));
+			programShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
 
 		vao.unbind();
 
@@ -138,7 +156,7 @@ int main() {
 
 	vao.delete_buffer();
 	vbo.delete_buffer();
-	ebo.delete_buffer();
+	//ebo.delete_buffer();
 
 	glfwDestroyWindow(window);
 

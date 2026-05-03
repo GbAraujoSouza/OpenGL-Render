@@ -4,7 +4,7 @@ VAO::VAO() {
 	glGenVertexArrays(1, &this->id);
 }
 
-void VAO::linkVBO(VBO vbo, GLuint layout, GLint attributeSize,const void* pointer) {
+void VAO::linkVBO(VBO vbo, GLuint layout, GLint attributeSize, const void* pointer) {
 	vbo.bind();
 	// parameters:
 	// 1. index(layout) to generic vertex attrubute to modify (ex: layout 0 -> pos; layout 1 -> color)
